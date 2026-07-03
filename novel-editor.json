@@ -1,0 +1,23 @@
+{
+  "title": "夺天记",
+  "volumes": [
+    {
+      "title": "第一卷 初鸣",
+      "chapters": [
+        {
+          "title": "第一章",
+          "path": "第一卷 初鸣/1.txt"
+        }
+      ]
+    },
+    {
+      "title": "资料",
+      "chapters": [
+        {
+          "title": "完整大纲",
+          "path": "大纲.txt"
+        }
+      ]
+    }
+  ]
+}
