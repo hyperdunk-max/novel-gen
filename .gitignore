@@ -1,1 +1,10 @@
 agent-config.json
+src/agent-config.json
+node_modules/
+dist/
+release/
+*.log
+*.asar
+*.exe
+novel/
+夺天记/

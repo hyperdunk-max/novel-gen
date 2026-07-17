@@ -1,0 +1,45 @@
+{
+  "name": "novel-editor-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local desktop app wrapper for the novel editor.",
+  "author": "Local",
+  "main": "src/electron-main.js",
+  "scripts": {
+    "app": "electron .",
+    "build": "electron-builder --win portable --x64",
+    "build:dir": "electron-builder --dir",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "local.novel.editor",
+    "productName": "小说编辑器",
+    "electronVersion": "43.1.0",
+    "electronDist": "node_modules/electron/dist",
+    "files": [
+      "src/electron-main.js",
+      "src/server.js",
+      "src/index.html",
+      "src/app.js",
+      "src/styles.css",
+      "src/novel-editor.json",
+      "src/agent-config.example.json",
+      "src/大纲.txt",
+      "src/第一卷 初鸣/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "43.1.0",
+    "electron-builder": "26.15.3"
+  }
+}

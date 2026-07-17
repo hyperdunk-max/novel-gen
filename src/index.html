@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>小说编辑器</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="appShell">
+      <aside class="sidebar" id="sidebar" aria-label="书稿目录">
+        <div class="panel-resize-handle sidebar-resize-handle" id="sidebarResize" aria-hidden="true"></div>
+        <header class="sidebar-header">
+          <button class="icon-button" id="collapseSidebar" type="button" title="折叠目录" aria-label="折叠目录">
+            <span class="icon icon-panel" aria-hidden="true"></span>
+          </button>
+          <div class="brand">
+            <span class="brand-kicker">本地书稿</span>
+            <h1 id="bookTitle">小说编辑器</h1>
+          </div>
+        </header>
+
+        <div class="sidebar-actions">
+          <button class="primary-button" id="openDirectory" type="button">
+            <span class="icon icon-folder" aria-hidden="true"></span>
+            <span>打开目录</span>
+          </button>
+          <button class="icon-button" id="newVolume" type="button" title="新建卷" aria-label="新建卷">
+            <span class="icon icon-plus-box" aria-hidden="true"></span>
+          </button>
+          <button class="icon-button" id="newChapter" type="button" title="新建章节" aria-label="新建章节">
+            <span class="icon icon-page-plus" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <nav class="tree-panel" aria-label="书、卷、章">
+          <div class="tree" id="tree"></div>
+        </nav>
+
+        <section class="trash-panel" aria-label="回收站">
+          <button class="trash-header" id="trashToggle" type="button" aria-expanded="true">
+            <span class="icon icon-trash" aria-hidden="true"></span>
+            <span>回收站</span>
+            <span class="trash-count" id="trashCount">0</span>
+          </button>
+          <div class="trash-list" id="trashList"></div>
+        </section>
+      </aside>
+
+      <header class="toolbar" id="toolbar" aria-label="编辑设置">
+          <div class="toolbar-resize-handle" id="toolbarResize" aria-hidden="true"></div>
+          <button class="toolbar-reveal-button" id="showToolbar" type="button" title="展开工具栏" aria-label="展开工具栏">
+            <span aria-hidden="true">⌄</span>
+          </button>
+          <div class="toolbar-group toolbar-group-writing" aria-label="写作">
+            <button class="icon-button mobile-only" id="showSidebar" type="button" title="显示目录" aria-label="显示目录">
+              <span class="icon icon-panel" aria-hidden="true"></span>
+            </button>
+            <button class="secondary-button focus-entry-button" id="focusMode" type="button" title="专注写作" aria-label="专注写作" aria-pressed="false">
+              <span class="icon icon-focus" aria-hidden="true"></span>
+              <span>专注</span>
+            </button>
+            <button class="icon-button" id="saveNow" type="button" title="立即保存" aria-label="立即保存" disabled>
+              <span class="icon icon-save" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <div class="toolbar-group toolbar-group-type" aria-label="排版">
+            <label class="control">
+              <span>字体</span>
+              <select id="fontFamily">
+                <option value='"Microsoft YaHei", "PingFang SC", sans-serif'>雅黑</option>
+                <option value='SimSun, "Songti SC", serif'>宋体</option>
+                <option value='KaiTi, "Kaiti SC", serif'>楷体</option>
+                <option value='Georgia, "Times New Roman", serif'>Georgia</option>
+                <option value='system-ui, -apple-system, BlinkMacSystemFont, sans-serif'>系统</option>
+              </select>
+            </label>
+
+            <label class="range-control">
+              <span>字号 <output id="fontSizeValue">18</output></span>
+              <input id="fontSize" type="range" min="14" max="28" step="1" value="18" />
+            </label>
+
+            <label class="range-control">
+              <span>行距 <output id="lineHeightValue">1.8</output></span>
+              <input id="lineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8" />
+            </label>
+
+            <label class="range-control wide-control">
+              <span>版心 <output id="pageWidthValue">760</output></span>
+              <input id="pageWidth" type="range" min="520" max="1200" step="20" value="760" />
+            </label>
+
+            <label class="toggle-control" title="夜间模式">
+              <span>夜间</span>
+              <span class="switch">
+                <input id="nightMode" type="checkbox" aria-label="夜间模式" />
+                <span class="switch-track" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="toolbar-group toolbar-group-ai" aria-label="AI 续写">
+            <button class="icon-button" id="openModelConfig" type="button" title="模型配置" aria-label="模型配置">
+              <span class="icon icon-settings" aria-hidden="true"></span>
+            </button>
+
+            <label class="model-control" title="选择名词识别模型">
+              <span>模型</span>
+              <select id="agentModelSelect">
+                <option value="">本地规则</option>
+              </select>
+            </label>
+
+            <label class="generation-control" title="填写故事梗概生成下一章，留空则自动续写">
+              <span>下一章</span>
+              <textarea
+                id="generatePrompt"
+                rows="2"
+                placeholder="故事梗概或章节计划；留空自动续写"
+                autocomplete="off"
+              ></textarea>
+            </label>
+
+            <button class="primary-button toolbar-command" id="generateChapter" type="button" disabled>
+              <span class="icon icon-page-plus" aria-hidden="true"></span>
+              <span>生成章节</span>
+            </button>
+
+            <button class="primary-button toolbar-command" id="expandChapter" type="button" disabled>
+              <span class="icon icon-summary" aria-hidden="true"></span>
+              <span>一键扩写</span>
+            </button>
+          </div>
+
+          <div class="toolbar-group toolbar-group-terms" aria-label="词条">
+            <button class="primary-button toolbar-command" id="autoTerms" type="button" disabled>
+              <span class="icon icon-spark" aria-hidden="true"></span>
+              <span>识别名词</span>
+            </button>
+
+            <button class="primary-button toolbar-command" id="summarizeTerms" type="button" disabled>
+              <span class="icon icon-summary" aria-hidden="true"></span>
+              <span>智能总结</span>
+            </button>
+          </div>
+      </header>
+
+      <main class="workspace">
+        <section class="reader-stage" aria-label="章节内容">
+          <article class="page-shell" id="pageShell">
+            <div class="page-resize-handle page-resize-left" id="pageResizeLeft" aria-hidden="true"></div>
+            <div class="page-resize-handle page-resize-right" id="pageResizeRight" aria-hidden="true"></div>
+            <div class="page-resize-handle page-resize-top" id="pageResizeTop" aria-hidden="true"></div>
+            <div class="page-resize-handle page-resize-bottom" id="pageResizeBottom" aria-hidden="true"></div>
+            <div class="chapter-head">
+              <div class="chapter-title-row" id="chapterTitleRow">
+                <span class="chapter-title-affix">第</span>
+                <input
+                  class="chapter-number"
+                  id="chapterNumber"
+                  value=""
+                  readonly
+                  aria-label="序号"
+                  inputmode="numeric"
+                  pattern="[1-9][0-9]*"
+                  autocomplete="off"
+                />
+                <span class="chapter-title-affix" id="titleUnit">章</span>
+                <input class="chapter-title" id="chapterTitle" value="未选择章节" readonly aria-label="标题" />
+              </div>
+            <div class="chapter-meta">
+              <span id="saveState">未打开书稿</span>
+              <span id="wordStats">0 字</span>
+            </div>
+            <div class="find-panel" id="findPanel" hidden>
+              <input id="findInput" type="search" placeholder="查找" aria-label="查找内容" autocomplete="off" />
+              <input id="replaceInput" type="text" placeholder="替换为" aria-label="替换内容" autocomplete="off" />
+              <span class="find-count" id="findCount">0/0</span>
+              <button class="icon-button compact-button" id="findPrev" type="button" title="上一个" aria-label="上一个">
+                <span class="icon icon-chevron-up" aria-hidden="true"></span>
+              </button>
+              <button class="icon-button compact-button" id="findNext" type="button" title="下一个" aria-label="下一个">
+                <span class="icon icon-chevron-down" aria-hidden="true"></span>
+              </button>
+              <button class="secondary-button compact-text-button" id="replaceOne" type="button">替换</button>
+              <button class="secondary-button compact-text-button" id="replaceAll" type="button">全部</button>
+              <button class="icon-button compact-button" id="closeFindPanel" type="button" title="关闭" aria-label="关闭查找">
+                <span class="icon icon-close" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+
+            <div
+              id="editor"
+              class="editor"
+              contenteditable="true"
+              role="textbox"
+              aria-multiline="true"
+              spellcheck="false"
+              data-placeholder="选择左侧章节，或打开一个本地书稿目录。"
+            ></div>
+          </article>
+        </section>
+
+        <aside class="term-panel" id="termPanel" aria-label="名词库">
+          <div class="panel-resize-handle term-resize-handle" id="termPanelResize" aria-hidden="true"></div>
+          <header class="term-panel-header">
+            <div>
+              <span class="panel-kicker">设定</span>
+              <h2>名词库</h2>
+            </div>
+            <div class="term-panel-actions">
+              <button class="icon-button term-action-button" id="addTerm" type="button" title="新增词条" aria-label="新增词条">
+                <span class="icon icon-plus-box" aria-hidden="true"></span>
+              </button>
+              <button class="icon-button term-action-button" id="deleteTerm" type="button" title="删除词条" aria-label="删除词条" disabled>
+                <span class="icon icon-trash" aria-hidden="true"></span>
+              </button>
+              <span class="term-count" id="termCount">0</span>
+            </div>
+          </header>
+
+          <div class="term-list" id="termList"></div>
+
+          <section class="term-detail" id="termDetail" hidden>
+            <input class="term-name" id="termName" aria-label="名词" />
+            <label class="detail-control">
+              <span>目录</span>
+              <input id="termPath" type="text" aria-label="目录" />
+            </label>
+            <label class="detail-control">
+              <span>别名</span>
+              <input id="termAliases" type="text" aria-label="别名" />
+            </label>
+            <label class="detail-control">
+              <span>类型</span>
+              <select id="termType">
+                <option value="人物">人物</option>
+                <option value="地点">地点</option>
+                <option value="功法">功法</option>
+                <option value="道具">道具</option>
+                <option value="势力">势力</option>
+                <option value="设定">设定</option>
+                <option value="其他">其他</option>
+              </select>
+            </label>
+            <label class="detail-control">
+              <span>信息</span>
+              <textarea id="termInfo" rows="7"></textarea>
+            </label>
+            <div class="term-relations" id="termRelations" hidden></div>
+            <div class="term-occurrences">
+              <div class="detail-label">出现</div>
+              <div id="termOccurrences"></div>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <button class="focus-exit-button" id="exitFocusMode" type="button" hidden>
+      <span class="icon icon-focus-exit" aria-hidden="true"></span>
+      <span>退出专注</span>
+    </button>
+    <div class="editor-context-menu" id="editorContextMenu" role="menu" hidden>
+      <button type="button" role="menuitem" data-editor-command="copy">复制</button>
+      <button type="button" role="menuitem" data-editor-command="cut">剪切</button>
+      <button type="button" role="menuitem" data-editor-command="beautify">自动美化</button>
+    </div>
+    <div class="modal-backdrop" id="beautifyPreview" hidden>
+      <section class="beautify-dialog" role="dialog" aria-modal="true" aria-labelledby="beautifyPreviewTitle">
+        <header class="dialog-header">
+          <div>
+            <span class="panel-kicker">自动美化</span>
+            <h2 id="beautifyPreviewTitle">预览修改</h2>
+          </div>
+          <button class="icon-button compact-button" id="cancelBeautifyPreview" type="button" title="关闭" aria-label="关闭">
+            <span class="icon icon-close" aria-hidden="true"></span>
+          </button>
+        </header>
+        <div class="beautify-preview-grid">
+          <label>
+            <span>原文</span>
+            <textarea id="beautifyOriginal" readonly></textarea>
+          </label>
+          <label>
+            <span>美化后</span>
+            <textarea id="beautifyResult"></textarea>
+          </label>
+        </div>
+        <footer class="dialog-actions">
+          <button class="secondary-button" id="rejectBeautifyPreview" type="button">取消</button>
+          <button class="primary-button" id="applyBeautifyPreview" type="button">应用到选区</button>
+        </footer>
+      </section>
+    </div>
+    <div class="modal-backdrop" id="modelConfigModal" hidden>
+      <section class="model-config-dialog" role="dialog" aria-modal="true" aria-labelledby="modelConfigTitle">
+        <header class="dialog-header">
+          <div>
+            <span class="panel-kicker">模型</span>
+            <h2 id="modelConfigTitle">模型配置</h2>
+          </div>
+          <button class="icon-button compact-button" id="closeModelConfig" type="button" title="关闭" aria-label="关闭">
+            <span class="icon icon-close" aria-hidden="true"></span>
+          </button>
+        </header>
+        <div class="model-config-body">
+          <label class="config-toggle-row">
+            <span>
+              <strong>启用后台模型</strong>
+              <small>用于续写、扩写、自动美化和名词整理</small>
+            </span>
+            <span class="switch">
+              <input id="configEnabled" type="checkbox" aria-label="启用后台模型" />
+              <span class="switch-track" aria-hidden="true"></span>
+            </span>
+          </label>
+          <label class="config-field">
+            <span>默认模型</span>
+            <select id="configDefaultModel"></select>
+          </label>
+          <div class="config-provider-list" id="configProviderList"></div>
+        </div>
+        <footer class="dialog-actions">
+          <button class="secondary-button" id="cancelModelConfig" type="button">取消</button>
+          <button class="primary-button" id="saveModelConfig" type="button">保存配置</button>
+        </footer>
+      </section>
+    </div>
+    <script src="./app.js"></script>
+  </body>
+</html>
